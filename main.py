@@ -3,7 +3,8 @@ from drive_interaction import DVD_DRIVE
 from disk_interaction import DVD_DISK, CD_DISK
 from textual.app import App, ComposeResult
 from textual.widgets import Header, Footer, Button, Static, Label
-from textual.containers import HorizontalGroup
+from textual.containers import HorizontalGroup, VerticalGroup
+from textual.screen import Screen
 
 def calibration(drive1,drive2,drive3):
     """Calibrates the drives
@@ -23,21 +24,52 @@ def calibration(drive1,drive2,drive3):
     drive3.name = input("Which drive is opened? ")
     drive3.close_door()
 
-class Drive_control(HorizontalGroup):
+
+
+class Disk_management(Screen):
+    """Disk management screen
+    This screen will be responsible for displaying the status of the disks and allowing the user to perform actions on them.
+    """
+    BINDINGS = [
+        ("b", "back", "Back to main screen")
+    ]
     def compose(self) -> ComposeResult:
-        self.prefix="Drive Door Status: "
+        yield Label("Disk management screen")
+        yield Button("Back", id="back")
+    @on(Button.Pressed, "#back")
+    def action_back(self):
+        self.app.pop_screen()
+
+
+class Drive_control(HorizontalGroup):
+    BINDINGS = [
+        ("r", "refresh", "Refresh drive state")
+    ]
+    def compose(self) -> ComposeResult:
+        self.door_prefix="Drive Door Status: "
+        self.disc_prefix="Drive Disc Status: "
         yield Label("Drive: "+self.name, id="drive_name")
         yield Button("Open Drive", id="open_drive")
         yield Button("Close Drive", id="close_drive")
-        yield Label(self.prefix+str(drives[int(self.name)].door), id="drive_status")
+        yield VerticalGroup(Label(self.door_prefix+str(drives[int(self.name)].door), id="drive_door_status"),Label(self.disc_prefix+str(drives[int(self.name)].disc), id="drive_disc_status"))
+        yield Button("Manage Disk", id="manage_disk")
+    @on(Button.Pressed, "#manage_disk")
+    def manage_disk(self):
+        self.app.push_screen(Disk_management())
     @on(Button.Pressed, "#open_drive")
     def open_drive(self):
         drives[int(self.name)].open_door()
-        self.get_widget_by_id("drive_status").update(self.prefix+str(drives[int(self.name)].door))
+        self.get_widget_by_id("drive_door_status").update(self.door_prefix+str(drives[int(self.name)].door))
     @on(Button.Pressed, "#close_drive")
     def close_drive(self):
         drives[int(self.name)].close_door()
-        self.get_widget_by_id("drive_status").update(self.prefix+str(drives[int(self.name)].door))
+        drives[int(self.name)].get_state()
+        self.get_widget_by_id("drive_door_status").update(self.door_prefix+str(drives[int(self.name)].door))
+        self.get_widget_by_id("drive_disc_status").update(self.disc_prefix+str(drives[int(self.name)].disc))
+    def action_refresh(self):
+        drives[int(self.name)].get_state()
+        self.get_widget_by_id("drive_door_status").update(self.door_prefix+str(drives[int(self.name)].door))
+        self.get_widget_by_id("drive_disc_status").update(self.disc_prefix+str(drives[int(self.name)].disc))
 
 class dashboard(App):
     """Dashboard class
@@ -60,7 +92,6 @@ class dashboard(App):
         self.theme = "textual-dark" if self.theme == "textual-light" else "textual-light"
     def action_quit(self):
         self.app.exit()
-
 
 if __name__ == "__main__":
     drive1 = DVD_DRIVE()
