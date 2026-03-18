@@ -8,6 +8,8 @@ from textual.screen import Screen
 import json
 import time
 
+#TODO: add ripping control.
+
 class Metadata_editor(Screen):
     """Metadata editor screen
     This screen will be responsible for editing the metadata of the disks.
