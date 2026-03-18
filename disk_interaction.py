@@ -16,6 +16,7 @@ class DVD_DISK():
         self.status = None
         self.drive = drive
         self.additional_info = None
+        self.metadata = False
     def get_metadata(self):
         """Gathers DVD metadata using lsdvd.
         """
@@ -42,6 +43,7 @@ class DVD_DISK():
         self.additional_info = data
         self.status = "metadata gathered"
         self.drive.status = None
+        self.metadata = True
 
 
 
@@ -57,7 +59,8 @@ class CD_DISK():
         self.title = None
         self.status = None
         self.drive = drive
-        self.additional_info = dir
+        self.additional_info = None
+        self.metadata = False
     def sanitize_cdtext(text, replacement=" -"):
         """
         Replace ':' inside values (not keys) with a safe separator.
@@ -84,7 +87,7 @@ class CD_DISK():
         self.drive.status = "gathering metadata"
         result = subprocess.run(["cd-info",self.drive.path], capture_output=True, text=True)
         result = result.split("CD-TEXT ",1)
-        num_tracks = int(result[0].splitlines()[44].split("(")[1].split(" - ")[1][:-1])
+        self.num_tracks = int(result[0].splitlines()[44].split("(")[1].split(" - ")[1][:-1])
         result.pop(0)
         result[0] = result[0].replace("\t","    ")
         sanitized = self.sanitize_cdtext(result[0])
@@ -93,6 +96,7 @@ class CD_DISK():
         self.additional_info = metadata
         self.status = "metadata gathered"
         self.drive.status = None
+        self.metadata = True
         print("hello world")
     def rip(self):
         """Rips the CD

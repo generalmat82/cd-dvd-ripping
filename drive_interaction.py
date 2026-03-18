@@ -16,6 +16,8 @@ class DVD_DRIVE():
         self.disc = bool
         self.status = None
         self.name = str
+        self.disk = None
+        self.initialized = False
     def get_state(self):
         """detect_tray reads status of the CDROM_DRIVE.
         Statuses:

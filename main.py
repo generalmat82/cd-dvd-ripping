@@ -2,7 +2,7 @@ from textual import on
 from drive_interaction import DVD_DRIVE
 from disk_interaction import DVD_DISK, CD_DISK
 from textual.app import App, ComposeResult
-from textual.widgets import Header, Footer, Button, Static, Label
+from textual.widgets import Header, Footer, Button, Static, Label, Select
 from textual.containers import HorizontalGroup, VerticalGroup
 from textual.screen import Screen
 
@@ -34,8 +34,43 @@ class Disk_management(Screen):
         ("b", "back", "Back to main screen")
     ]
     def compose(self) -> ComposeResult:
-        yield Label("Disk management screen")
-        yield Button("Back", id="back")
+        self.title = "Disk management Screen drive "+self.name
+        yield Header()
+        yield Footer()
+        if not drives[int(self.name)].initialized:
+            options = ["DVD Disk", "CD Disk"]
+            yield Select(((line, line) for line in options),id="disk_type_select")
+            yield Button("Initialize Disk", id="initialize_disk")
+        else:
+            yield Label("Disk Type: "+type(drives[int(self.name)].disk).__name__, id="disk_type")
+            
+            if drives[int(self.name)].disk.metadata:
+                yield Label("Disk Title: "+drives[int(self.name)].disk.title, id="disk_title")
+                yield Button("Metadata Editior", id="metadata_editor")
+            else:
+                yield Button("Gather Metadata", id="gather_metadata")
+    @on(Button.Pressed, "#gather_metadata")
+    def gather_metadata(self):
+        drives[int(self.name)].disk.get_metadata()
+        self.app.pop_screen()
+        self.app.push_screen(Disk_management(name=self.name))
+    @on(Button.Pressed, "#initialize_disk")
+    def initialize_disk(self):
+        disk_type = self.get_widget_by_id("disk_type_select").value
+        if disk_type == "DVD Disk":
+            drives[int(self.name)].disk = DVD_DISK(drives[int(self.name)])
+        elif disk_type == "CD Disk":
+            drives[int(self.name)].disk = CD_DISK(drives[int(self.name)])
+        drives[int(self.name)].initialized = True
+        self.app.pop_screen()
+        self.app.push_screen(Disk_management(name=self.name))
+    @on(Button.Pressed, "#Metadata_editor")
+    def metadata_editor(self):
+        pass
+
+
+
+
     @on(Button.Pressed, "#back")
     def action_back(self):
         self.app.pop_screen()
@@ -55,7 +90,7 @@ class Drive_control(HorizontalGroup):
         yield Button("Manage Disk", id="manage_disk")
     @on(Button.Pressed, "#manage_disk")
     def manage_disk(self):
-        self.app.push_screen(Disk_management())
+        self.app.push_screen(Disk_management(name=self.name))
     @on(Button.Pressed, "#open_drive")
     def open_drive(self):
         drives[int(self.name)].open_door()
