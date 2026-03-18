@@ -7,26 +7,6 @@ from textual.containers import HorizontalGroup, VerticalGroup
 from textual.screen import Screen
 import json
 
-def calibration(drive1,drive2,drive3):
-    """Calibrates the drives
-    Obtains the states of each drives
-    After will open one drive at a time asking user which one it is
-    """
-    drive1.get_state()
-    drive2.get_state()
-    drive3.get_state()
-    drive1.open_door()
-    drive1.name = input("Which drive is opened? ")
-    drive1.close_door()
-    drive2.open_door()
-    drive2.name = input("Which drive is opened? ")
-    drive2.close_door()
-    drive3.open_door()
-    drive3.name = input("Which drive is opened? ")
-    drive3.close_door()
-
-
-
 class Metadata_editor(Screen):
     """Metadata editor screen
     This screen will be responsible for editing the metadata of the disks.
@@ -40,6 +20,11 @@ class Metadata_editor(Screen):
     @on(Button.Pressed, "#save_metadata")
     def save_metadata(self):
         new_metadata = self.get_widget_by_id("metadata_editor_textarea").text
+        new_metadata = json.loads(new_metadata)
+        if type(drives[int(self.name)].disk).__name__ == "DVD_DISK":
+            drives[int(self.name)].disk.title = new_metadata["title"]
+        elif type(drives[int(self.name)].disk).__name__ == "CD_DISK":
+            drives[int(self.name)].disk.title = new_metadata["for Disc"]["TITLE"]
         drives[int(self.name)].disk.additional_info = json.loads(new_metadata)
         self.app.pop_screen()
 
@@ -104,7 +89,8 @@ class Drive_control(HorizontalGroup):
         yield Label("Drive: "+self.name, id="drive_name")
         yield Button("Open Drive", id="open_drive")
         yield Button("Close Drive", id="close_drive")
-        yield VerticalGroup(Label(self.door_prefix+str(drives[int(self.name)].door), id="drive_door_status"),Label(self.disc_prefix+str(drives[int(self.name)].disc), id="drive_disc_status"))
+        yield VerticalGroup(Label(self.door_prefix+str(drives[int(self.name)].door), id="drive_door_status"),Label(self.disc_prefix+str(drives[int(self.name)].has_disc), id="drive_disc_status"))
+        yield Label("Disk status:"+str(drives[int(self.name)].initialized), id="disk_status")
         yield Button("Manage Disk", id="manage_disk")
     @on(Button.Pressed, "#manage_disk")
     def manage_disk(self):
@@ -122,7 +108,9 @@ class Drive_control(HorizontalGroup):
     def action_refresh(self):
         drives[int(self.name)].get_state()
         self.get_widget_by_id("drive_door_status").update(self.door_prefix+str(drives[int(self.name)].door))
-        self.get_widget_by_id("drive_disc_status").update(self.disc_prefix+str(drives[int(self.name)].disc))
+        self.get_widget_by_id("drive_disc_status").update(self.disc_prefix+str(drives[int(self.name)].has_disc))
+        if drives[int(self.name)].initialized:
+            self.get_widget_by_id("disk_status").update("Disk status:"+str(drives[int(self.name)].disk.status))
 
 class dashboard(App):
     """Dashboard class

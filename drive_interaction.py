@@ -13,7 +13,7 @@ class DVD_DRIVE():
         """
         self.path = path
         self.door = bool
-        self.disc = bool
+        self.has_disc = bool
         self.status = None
         self.name = str
         self.disk = None
@@ -32,17 +32,17 @@ class DVD_DRIVE():
         print(rv)
         if rv == 1:
             self.door = False
-            self.disc = False
+            self.has_disc = False
         elif rv == 2:
             self.door = True
-            self.disc = False
+            self.has_disc = False
         elif rv == 3:
             self.door = False
-            self.disc = True
+            self.has_disc = True
         elif rv == 4:
             self.door = False
-            self.disc = True
-        print(self.door,self.disc)
+            self.has_disc = True
+        print(self.door,self.has_disc)
         return rv
     def open_door(self):
         """Opens/Eject the drive
