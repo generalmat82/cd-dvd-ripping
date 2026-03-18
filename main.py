@@ -6,6 +6,7 @@ from textual.widgets import Header, Footer, Button, Static, Label, Select, TextA
 from textual.containers import HorizontalGroup, VerticalGroup
 from textual.screen import Screen
 import json
+import yaml
 import time
 
 
@@ -17,17 +18,18 @@ class Metadata_editor(Screen):
         yield Header()
         yield Footer()
         yield Label("Metadata editor for disk "+self.name, id="metadata_editor_title")
-        yield TextArea(json.dumps(drives[int(self.name)].disk.additional_info, indent=4), id="metadata_editor_textarea")
+        yield TextArea(yaml.dump(drives[int(self.name)].disk.additional_info, indent=4), id="metadata_editor_textarea")
         yield Button("Save Metadata", id="save_metadata")
     @on(Button.Pressed, "#save_metadata")
     def save_metadata(self):
         new_metadata = self.get_widget_by_id("metadata_editor_textarea").text
-        new_metadata = json.loads(new_metadata)
+        print("type of text:" +str(type(new_metadata)))
+        new_metadata = yaml.load(str(new_metadata), Loader=yaml.Loader)
         if type(drives[int(self.name)].disk).__name__ == "DVD_DISK":
             drives[int(self.name)].disk.title = new_metadata["title"]
         elif type(drives[int(self.name)].disk).__name__ == "CD_DISK":
             drives[int(self.name)].disk.title = new_metadata["for Disc"]["TITLE"]
-        drives[int(self.name)].disk.additional_info = json.loads(new_metadata)
+        drives[int(self.name)].disk.additional_info = new_metadata
         self.app.pop_screen()
 
 
@@ -114,8 +116,7 @@ class Drive_control(HorizontalGroup):
         yield Button("Close Drive", id="close_drive")
         yield VerticalGroup(Label(self.door_prefix+str(drives[int(self.name)].door), id="drive_door_status"),Label(self.disc_prefix+str(drives[int(self.name)].has_disc), id="drive_disc_status"))
         yield Label("Disk status:"+str(drives[int(self.name)].initialized), id="disk_status")
-        if drives[int(self.name)].initialized:
-            yield Label("RIP status: "+str(drives[int(self.name)].disk.rip_status), id="rip_status")
+        yield Label("RIP status: ", id="rip_status")
         yield Button("Manage Disk", id="manage_disk")
     @on(Button.Pressed, "#manage_disk")
     def manage_disk(self):
