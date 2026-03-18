@@ -6,6 +6,7 @@ from textual.widgets import Header, Footer, Button, Static, Label, Select, TextA
 from textual.containers import HorizontalGroup, VerticalGroup
 from textual.screen import Screen
 import json
+import time
 
 class Metadata_editor(Screen):
     """Metadata editor screen
@@ -91,6 +92,8 @@ class Drive_control(HorizontalGroup):
         yield Button("Close Drive", id="close_drive")
         yield VerticalGroup(Label(self.door_prefix+str(drives[int(self.name)].door), id="drive_door_status"),Label(self.disc_prefix+str(drives[int(self.name)].has_disc), id="drive_disc_status"))
         yield Label("Disk status:"+str(drives[int(self.name)].initialized), id="disk_status")
+        if drives[int(self.name)].initialized:
+            yield Label("RIP status: "+str(drives[int(self.name)].disk.rip_status), id="rip_status")
         yield Button("Manage Disk", id="manage_disk")
     @on(Button.Pressed, "#manage_disk")
     def manage_disk(self):
@@ -102,9 +105,10 @@ class Drive_control(HorizontalGroup):
     @on(Button.Pressed, "#close_drive")
     def close_drive(self):
         drives[int(self.name)].close_door()
+        time.sleep(2)
         drives[int(self.name)].get_state()
         self.get_widget_by_id("drive_door_status").update(self.door_prefix+str(drives[int(self.name)].door))
-        self.get_widget_by_id("drive_disc_status").update(self.disc_prefix+str(drives[int(self.name)].disc))
+        self.get_widget_by_id("drive_disc_status").update(self.disc_prefix+str(drives[int(self.name)].has_disc))
     def action_refresh(self):
         drives[int(self.name)].get_state()
         self.get_widget_by_id("drive_door_status").update(self.door_prefix+str(drives[int(self.name)].door))
@@ -141,14 +145,14 @@ if __name__ == "__main__":
     drive2.get_state()
     drive3.get_state()
     drives=["",drive1,drive2,drive3]
-    positions = ["",None,None,None]
-    drive1.open_door()
-    positions[int(input("Enter drive position number"))] = "1"
-    drive1.close_door()
-    drive2.open_door()
-    positions[int(input("Enter drive position number"))] = "2"
-    drive2.close_door()
-    drive3.open_door()
-    positions[int(input("Enter drive position number"))] = "3"
-    drive3.close_door()
+    positions = ["","3","1","2"]
+    # drive1.open_door()
+    # positions[int(input("Enter drive position number"))] = "1"
+    # drive1.close_door()
+    # drive2.open_door()
+    # positions[int(input("Enter drive position number"))] = "2"
+    # drive2.close_door()
+    # drive3.open_door()
+    # positions[int(input("Enter drive position number"))] = "3"
+    # drive3.close_door()
     dashboard().run()

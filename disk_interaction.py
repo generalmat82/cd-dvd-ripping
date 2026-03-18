@@ -1,8 +1,25 @@
-import time
+import os
 import json
 import subprocess
 import yaml
 from drive_interaction import DVD_DRIVE
+
+
+def fs_tree(disk) ->str:
+    """Creates the required folder in the file system
+
+    Args:
+        disk (DVD_DISK|CD_DISK): DVD or CD instance
+
+    Returns:
+        str: path for ISO and metadata path
+    """
+    path="./IMG/"+ type(disk).__name__+"/"+disk.title
+    if not os.path.exists(path):
+        os.makedirs(path)
+    return path+"/"
+
+
 class DVD_DISK():
     """Class for a DVD disk.
     """
@@ -17,6 +34,7 @@ class DVD_DISK():
         self.drive = drive
         self.additional_info = None
         self.metadata = False
+        self.rip_status = None
     def get_metadata(self):
         """Gathers DVD metadata using lsdvd.
         """
@@ -44,8 +62,29 @@ class DVD_DISK():
         self.status = "metadata gathered"
         self.drive.status = None
         self.metadata = True
-
-
+    def rip(self):
+        """Rips the DVD
+        While the DVD is being ripped, the program will make a file alongside the ISO
+        This file will have the metadata of the DVD in JSON format.
+        After, the user will be able to return to menu and perform other actions while the DVD is being ripped.
+        """
+        self.rip_status = "ripping"
+        path = fs_tree(self)
+        iso_path = path+self.title+".iso"
+        metadata_path = path+self.title+"_metadata.json"
+        with open(metadata_path,"w") as f:
+            json.dump(self.additional_info,f)
+        self.rip_process = subprocess.Popen(["dd","if="+self.drive.path,"of="+iso_path])
+    def rip_status_check(self):
+        """Checks the status of the ripping process.
+        """
+        if self.rip_process.poll() is None:
+            self.rip_status = "ripping"
+        else:
+            if self.rip_process.returncode == 0:
+                self.rip_status = "ripped"
+            else:
+                self.rip_status = "error"
 
 class CD_DISK():
     """Class for a CD disk.
@@ -61,6 +100,7 @@ class CD_DISK():
         self.drive = drive
         self.additional_info = None
         self.metadata = False
+        self.rip_status = None
     def get_metadata(self):
         def sanitize_cdtext(text, replacement=" -"):
             """
@@ -104,3 +144,20 @@ class CD_DISK():
         This file will have the metadata of the CD in JSON format.
         After, the user will be able to return to menu and perform other actions while the CD is being ripped.
         """
+        self.rip_status = "ripping"
+        path = fs_tree(self)
+        iso_path = path+self.title+".iso"
+        metadata_path = path+self.title+"_metadata.json"
+        with open(metadata_path,"w") as f:
+            json.dump(self.additional_info,f)
+        self.rip_process = subprocess.Popen(["dd","if="+self.drive.path,"of="+iso_path])
+    def rip_status_check(self):
+        """Checks the status of the ripping process.
+        """
+        if self.rip_process.poll() is None:
+            self.rip_status = "ripping"
+        else:
+            if self.rip_process.returncode == 0:
+                self.rip_status = "ripped"
+            else:
+                self.rip_status = "error"
