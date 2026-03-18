@@ -2,9 +2,10 @@ from textual import on
 from drive_interaction import DVD_DRIVE
 from disk_interaction import DVD_DISK, CD_DISK
 from textual.app import App, ComposeResult
-from textual.widgets import Header, Footer, Button, Static, Label, Select
+from textual.widgets import Header, Footer, Button, Static, Label, Select, TextArea
 from textual.containers import HorizontalGroup, VerticalGroup
 from textual.screen import Screen
+import json
 
 def calibration(drive1,drive2,drive3):
     """Calibrates the drives
@@ -24,6 +25,23 @@ def calibration(drive1,drive2,drive3):
     drive3.name = input("Which drive is opened? ")
     drive3.close_door()
 
+
+
+class Metadata_editor(Screen):
+    """Metadata editor screen
+    This screen will be responsible for editing the metadata of the disks.
+    """
+    def compose(self) -> ComposeResult:
+        yield Header()
+        yield Footer()
+        yield Label("Metadata editor for disk "+self.name, id="metadata_editor_title")
+        yield TextArea(json.dumps(drives[int(self.name)].disk.additional_info, indent=4), id="metadata_editor_textarea")
+        yield Button("Save Metadata", id="save_metadata")
+    @on(Button.Pressed, "#save_metadata")
+    def save_metadata(self):
+        new_metadata = self.get_widget_by_id("metadata_editor_textarea").text
+        drives[int(self.name)].disk.additional_info = json.loads(new_metadata)
+        self.app.pop_screen()
 
 
 class Disk_management(Screen):
@@ -64,9 +82,9 @@ class Disk_management(Screen):
         drives[int(self.name)].initialized = True
         self.app.pop_screen()
         self.app.push_screen(Disk_management(name=self.name))
-    @on(Button.Pressed, "#Metadata_editor")
+    @on(Button.Pressed, "#metadata_editor")
     def metadata_editor(self):
-        pass
+        self.app.push_screen(Metadata_editor(name=self.name))
 
 
 
