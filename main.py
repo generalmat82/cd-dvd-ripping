@@ -119,16 +119,15 @@ class dashboard(App):
     """
     BINDINGS = [
         ("d", "dark_mode_toggle", "Toggle dark mode"),
-        ("q", "quit", "Quit the app")
     ]
     def compose(self):
         """Composes the user interface
         """
         yield Header(show_clock=True)
         yield Footer()
-        yield Drive_control(name="1")
-        yield Drive_control(name="2")
-        yield Drive_control(name="3")
+        yield Drive_control(name=positions[1])
+        yield Drive_control(name=positions[2])
+        yield Drive_control(name=positions[3])
     def action_dark_mode_toggle(self):
         self.theme = "textual-dark" if self.theme == "textual-light" else "textual-light"
     def action_quit(self):
@@ -142,5 +141,14 @@ if __name__ == "__main__":
     drive2.get_state()
     drive3.get_state()
     drives=["",drive1,drive2,drive3]
-    # calibration(drive1,drive2,drive3)
+    positions = ["",None,None,None]
+    drive1.open_door()
+    positions[int(input("Enter drive position number"))] = "1"
+    drive1.close_door()
+    drive2.open_door()
+    positions[int(input("Enter drive position number"))] = "2"
+    drive2.close_door()
+    drive3.open_door()
+    positions[int(input("Enter drive position number"))] = "3"
+    drive3.close_door()
     dashboard().run()
