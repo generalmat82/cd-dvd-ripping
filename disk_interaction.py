@@ -101,6 +101,3 @@ class CD_DISK():
         After, the user will be able to return to menu and perform other actions while the CD is being ripped.
         """
 
-
-x = CD_DISK("/dev/sr2")
-x.get_metadata()

@@ -12,9 +12,10 @@ class DVD_DRIVE():
             path (str, optional): path of the drive. Defaults to "/dev/sr0".
         """
         self.path = path
-        self.door = True
-        self.disc = False
+        self.door = bool
+        self.disc = bool
         self.status = None
+        self.name = str
     def get_state(self):
         """detect_tray reads status of the CDROM_DRIVE.
         Statuses:
@@ -45,8 +46,10 @@ class DVD_DRIVE():
         """Opens/Eject the drive
         """
         subprocess.run(["eject",self.path])
+        self.door = True
     def close_door(self):
         """Closes the drive
         """
         subprocess.run(["eject",self.path,"-t"])
+        self.door = False
 
