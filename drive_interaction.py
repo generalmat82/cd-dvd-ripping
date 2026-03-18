@@ -3,10 +3,18 @@ import fcntl
 import os
 
 class DVD_DRIVE():
-    def __init__(self,drive="/dev/sr0"):
-        self.drive = drive
+    """Optical Drive class
+    Gathers and stores data related to optical drives.
+    """
+    def __init__(self,path="/dev/sr0"):
+        """
+        Args:
+            path (str, optional): path of the drive. Defaults to "/dev/sr0".
+        """
+        self.path = path
         self.door = True
         self.disc = False
+        self.status = None
     def get_state(self):
         """detect_tray reads status of the CDROM_DRIVE.
         Statuses:
@@ -15,7 +23,7 @@ class DVD_DRIVE():
         3 = reading tray
         4 = disk in tray
         """
-        fd = os.open(self.drive, os.O_RDONLY | os.O_NONBLOCK)
+        fd = os.open(self.path, os.O_RDONLY | os.O_NONBLOCK)
         rv = fcntl.ioctl(fd, 0x5326)
         os.close(fd)
         print(rv)
@@ -34,7 +42,11 @@ class DVD_DRIVE():
         print(self.door,self.disc)
         return rv
     def open_door(self):
-        subprocess.run(["eject",self.drive])
+        """Opens/Eject the drive
+        """
+        subprocess.run(["eject",self.path])
     def close_door(self):
-        subprocess.run(["eject",self.drive,"-t"])
+        """Closes the drive
+        """
+        subprocess.run(["eject",self.path,"-t"])
 
