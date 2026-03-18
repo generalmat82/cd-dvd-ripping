@@ -15,7 +15,6 @@ class DVD_DRIVE():
         self.door = bool
         self.has_disc = bool
         self.status = None
-        self.name = str
         self.disk = None
         self.initialized = False
     def get_state(self):

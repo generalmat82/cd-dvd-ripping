@@ -8,7 +8,6 @@ from textual.screen import Screen
 import json
 import time
 
-#TODO: add ripping control.
 
 class Metadata_editor(Screen):
     """Metadata editor screen
@@ -49,12 +48,22 @@ class Disk_management(Screen):
             yield Button("Initialize Disk", id="initialize_disk")
         else:
             yield Label("Disk Type: "+type(drives[int(self.name)].disk).__name__, id="disk_type")
-            
             if drives[int(self.name)].disk.metadata:
                 yield Label("Disk Title: "+drives[int(self.name)].disk.title, id="disk_title")
-                yield Button("Metadata Editior", id="metadata_editor")
+                if drives[int(self.name)].disk.rip_status == "ripping" or drives[int(self.name)].disk.rip_status == "error" or drives[int(self.name)].disk.rip_status == "ripped":
+                    yield Button("Metadata Editior", id="metadata_editor",disabled=True)
+                else:
+                        yield Button("Metadata Editior", id="metadata_editor")
+                if drives[int(self.name)].disk.rip_status == None:
+                    yield Button("Rip Disk", id="rip_disk")
+                elif drives[int(self.name)].disk.rip_status == "ripping":
+                    yield Button("Stop Ripping", id="stop_rip_disk")
+                elif drives[int(self.name)].disk.rip_status == "error":
+                    yield Button("Rip Disk", id="rip_disk")
             else:
                 yield Button("Gather Metadata", id="gather_metadata")
+            yield Button("Reset Disk", id="reset_disk")
+            yield Button("Back", id="back")
     @on(Button.Pressed, "#gather_metadata")
     def gather_metadata(self):
         drives[int(self.name)].disk.get_metadata()
@@ -73,7 +82,18 @@ class Disk_management(Screen):
     @on(Button.Pressed, "#metadata_editor")
     def metadata_editor(self):
         self.app.push_screen(Metadata_editor(name=self.name))
+    @on(Button.Pressed, "#rip_disk")
+    def rip_disk(self):
+        drives[int(self.name)].disk.rip()
+        #disable access to metadata editor.
 
+    @on(Button.Pressed, "#reset_disk")
+    def reset_disk(self):
+        drives[int(self.name)].disk = None
+        drives[int(self.name)].initialized = False
+        self.app.pop_screen()
+        self.app.push_screen(Disk_management(name=self.name))
+        
 
 
 
@@ -117,7 +137,9 @@ class Drive_control(HorizontalGroup):
         self.get_widget_by_id("drive_disc_status").update(self.disc_prefix+str(drives[int(self.name)].has_disc))
         if drives[int(self.name)].initialized:
             self.get_widget_by_id("disk_status").update("Disk status:"+str(drives[int(self.name)].disk.status))
-
+            if drives[int(self.name)].disk.rip_status != None:
+                drives[int(self.name)].disk.rip_status_check()
+                self.get_widget_by_id("rip_status").update("RIP status: "+str(drives[int(self.name)].disk.rip_status))
 class dashboard(App):
     """Dashboard class
     This class will be responsible for the user interface of the program.
@@ -146,6 +168,7 @@ if __name__ == "__main__":
     drive1.get_state()
     drive2.get_state()
     drive3.get_state()
+    drives=[str,DVD_DRIVE,DVD_DRIVE,DVD_DRIVE]
     drives=["",drive1,drive2,drive3]
     positions = ["","3","1","2"]
     # drive1.open_door()
