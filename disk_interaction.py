@@ -149,7 +149,7 @@ class CD_DISK():
         metadata_path = path+self.title+"_metadata.json"
         with open(metadata_path,"w") as f:
             json.dump(self.additional_info,f)
-        self.rip_process = subprocess.Popen(["cdparanoia","-B",self.drive.path,path,"-Z"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        self.rip_process = subprocess.Popen(["cdparanoia","-d",self.drive.path,path,"-Z"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     def rip_status_check(self):
         """Checks the status of the ripping process.
         """
